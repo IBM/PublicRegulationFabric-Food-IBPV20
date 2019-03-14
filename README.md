@@ -29,261 +29,283 @@ If you have an IBM cloud lite account, you can also use the Starter Plan for 30 
 
 ## Included Components
 * Hyperledger Fabric
-* Hyperledger Composer
 
 ## Included technologies
 * Blockchain
-* Containers
-* Cloud
+* Kubernetes Container Service
 
 ## Application Workflow Diagram
 ![Application Workflow](images/archi.png)
 
-* Install Hyperledger Composer development tools
+* Install Hyperledger Fabric development tools
 * Configure and start Hyperledger Fabric network
-* Generate the Business Network Archive file
-* Deploy the Business Network Archive using Composer Playground
-* (Alternative method) Deploy the Business Network Archive on Hyperledger Composer running locally
+* Use Fabric SDK to enroll user and invoke blockchain transactions
 
+<!-- * Generate the Business Network Archive file
+* Deploy the Business Network Archive using Composer Playground
+* (Alternative method) Deploy the Business Network Archive on Hyperledger Composer running locally -->
+
+
+
+## Install Prerequisites:
+
+### IBM Cloud CLI
+To interact with the hosted offerings, the IBM Cloud CLI will need to be installed beforehand. The latest CLI releases can be found at the link [here](https://console.bluemix.net/docs/cli/reference/bluemix_cli/download_cli.html#download_install). An install script is maintained at the mentioned link, which can be executed with one of the following commands
+
+```bash
+# Mac OSX
+curl -fsSL https://clis.ng.bluemix.net/install/osx | sh
+
+# Linux
+curl -fsSL https://clis.ng.bluemix.net/install/linux | sh
+
+# Powershell
+iex(New-Object Net.WebClient).DownloadString('https://clis.ng.bluemix.net/install/powershell')
+```
+After installation is complete, confirm the CLI is working by printing the version like so
+
+```bash
+ibmcloud -v
+```
+
+```bash
+# Log in
+ibmcloud login
+```
+
+Finally, install the container service plugin, which is required to interact with IBM Kubernetes deployments
+```bash
+ibmcloud plugin install container-service -r Bluemix
+```
+
+### Kubernetes CLI
+
+```bash
+# OS X
+curl https://storage.googleapis.com/kubernetes-release/release/v1.11.7/bin/darwin/amd64/kubectl -P /usr/local/bin/
+# Linux
+curl https://storage.googleapis.com/kubernetes-release/release/v1.11.7/bin/linux/amd64/kubectl -P /usr/local/bin/
+
+chmod +x /usr/local/bin/kubectl
+kubectl -v
+```
+
+<!-- # Windows
+curl https://storage.googleapis.com/kubernetes-release/release/v1.11.7/bin/windows/amd64/kubectl.exe -->
+
+### Node.js packages
+
+If expecting to run this application locally, please install [Node.js](https://nodejs.org/en/) and NPM. Currently the Hyperledger Fabric SDK only appears to work with node v8.9.0+, but [is not yet supported](https://github.com/hyperledger/fabric-sdk-node#build-and-test) on node v9.0+. If your system requires newer versions of node for other projects, we'd suggest using [nvm](https://github.com/creationix/nvm) to easily switch between node versions. We did so with the following commands
+
+```bash
+curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
+# Place next three lines in ~/.bash_profile
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+nvm install v8.9.0
+nvm use 8.9.0
+```
+
+To run the Securitization UI locally, we'll need to install a few node libraries which are listed in our `package.json` file.
+- [React.js](https://reactjs.org/): Used to simplify the generation of front-end components
+- [MQTT](http://mqtt.org/): Client package to subscribe to Watson IoT Platform and handle incoming messages
+- [Hyperledger Fabric SDK](https://fabric-sdk-node.github.io/): Enables backend to connect to IBM Blockchain service
+
+### VSCode
+Visit the following [link](https://code.visualstudio.com/) to download Visual Studio code for your operating system.
+
+Once VSCode is installed, follow the requirements [here](https://github.com/IBM-Blockchain/blockchain-vscode-extension/blob/master/README.md#requirements) to install the IBM Blockchain Platform extension as well.
 
 ## Steps
-1. [Generate the Business Network Archive (BNA)](#1-generate-the-business-network-archive-bna)
+1. [Clone Git Repository](#1-clone-git-repository)
+2. [Package Smart Contract](#1-deploy-the-blockchain-network)
+3. [Deploy local Blockchain Network](#1-deploy-a-blockchain-network)
+4. [Start Node server]()
+5. [Populate Ledger and Simulate Transactions]
+
 2. [Deploy the Business Network Archive using Composer Playground](#2-deploy-the-business-network-archive-using-composer-playground)
 3. [Deploy the Business Network Archive on Hyperledger Composer running locally](#3-deploy-the-business-network-archive-on-hyperledger-composer-running-locally)
 
 
-## 1. Generate the Business Network Archive (BNA)
-
-To check that the structure of the files is valid, you can now generate a Business Network Archive (BNA) file for your business network definition. The BNA file is the deployable unit -- a file that can be deployed to the Composer runtime for execution.
-
-Use the following command to generate the network archive:
-```bash
-npm install
+## 1. Clone Git Repository
 ```
-You should see the following output:
-```bash
-Creating Business Network Archive
-
-Looking for package.json of Business Network Definition
-	Input directory: /Users/ishan/Documents/git-demo/BlockchainPublicRegulationFabric-Food
-
-Found:
-	Description: Sample food supplier verification network
-	Name: food-supply
-	Identifier: food-supply@0.0.1
-
-Written Business Network Definition Archive file to
-	Output file: ./dist/food-supply.bna
-
-Command succeeded
-```
-The `composer archive create` command has created a file called `food-supply.bna` in the `dist` folder.
-
-You can test the business network definition against the embedded runtime that stores the state of 'the blockchain' in-memory in a Node.js process.
-From your project working directory, open the file test/foodTest.js and run the following command:
-```
-npm test
-```
-You should see the following output :
-```
-> food-supply@0.0.1 test /Users/ishan/Documents/demo/BlockchainPublicRegulationFabric-Food
-> mocha --recursive
-
-  #composer.food.supply
-    ✓ Transfer ProductListing to Importer (67ms)
-    ✓ Exempt Check for ProductListing (98ms)
-    ✓ Transfer ProductListing to Retailer (95ms)
-
-  3 passing (2s)
+git clone https://github.com/IBM/BlockchainPublicRegulationFabric-Food/
 ```
 
-## 2. Deploy the Business Network Archive using Composer Playground
-Open [Composer Playground](http://composer-playground.mybluemix.net/), by default the Basic Sample Network is imported.
-If you have previously used Playground, be sure to clear your browser local storage by running `localStorage.clear()` in your browser Console.
 
-Now import the `food-supply.bna` file and click on deploy button.
-<p align="center">
-  <img width="100" height="50" src="images/importbtn.png">
-</p>
+## 2. Package Smart Contract
 
->You can also setup [Composer Playground locally](https://hyperledger.github.io/composer/installing/using-playground-locally.html).
+We'll interact with VSCode via a graphic interface, so if you're running on Linux or a headless operating system, skip ahead to the section labelled "Local Scripts".
 
-You will see the following:
-<p align="center">
-  <img width="400" height="200" src="images/composerplayground.png">
-</p>
-
-To test your Business Network Definition, first click on the **Test** tab:
-
-In the `Supplier` participant registry, create a new participant. Make sure you click on the `Supplier` tab on the far left-hand side first and click on `Create New Participant` button.
-<p align="center">
-  <img width="200" height="100" src="images/createparticipantbtn.png">
-</p>
-
+These smart contracts are written in Golang, so the source code for the smart contracts will need to be copied to the src folder in your `GOPATH`. This can be done like so.
 ```
-{
-  "$class": "composer.food.supply.Supplier",
-  "supplierId": "supplierA",
-  "countryId": "UK",
-  "orgId": "ACME"
-}
+cp -r chaincode $GOPATH/src/github.com/food
 ```
 
-Similarly create retailer, regulator, importer participants by selecting the respective tabs.
+- Open VS Code
+
+- In the menu, Click "File" and then "Open" (Or press CMD + O). Navigate to the directory where the project has been cloned, and select the "chaincode" folder.
+
+<!-- <img src="https://i.imgur.com/1ENmjK9.png"> -->
+<img src="https://i.imgur.com/HwxisSI.png">
+
+- Press "F1", and choose the option "IBM Blockchain Platform: Package a Smart Contract Project"
+
+<img src="https://i.imgur.com/wk7fQX5.png">
+
+- Enter a name and version. Here we'll use "food" and "1.0".
+
+- Select the "IBM Blockchain Platform" button on the left hand menu
+
+- In the "Smart Contract Packages" section, right click on the newly generated smart contract, and then click "export" to save the generate chaincode as a `.cds` file. Keep note of the directory, as we'll need to reference it later.
+
+<img src="https://i.imgur.com/mysot6o.png">
+
+
+
+## 3. Deploy a Blockchain Network
+
+We'll then need to deploy an Hyperledger network. This is done by provisioning each component in a docker container, and running configuration scripts to create and join a peer and channel. There are two methods to do so. The first recommended method is using the "VSCode" application.
+
+*VSCode*
+- Select the menu in the "Local Fabric Ops" section, and click "Start Fabric Runtime". This downloads and starts the Hyperledger docker images.
+
+<img src="https://i.imgur.com/N8r1QLm.png">
+
+- If the network is started successfully, we should see options to "Instantiate" and "Install" the smart contracts.
+<img src="https://i.imgur.com/mOb6JFw.png">
+
+- First, click "Install", select the default peer (`peer0.org1.example.com`), and then select the name of the contract we've just built, which will be "food@1.0" in our case. If this is successful, our chaincode should show up in the "Installed" section.
+<img src="https://i.imgur.com/vLaW1pi.png">
+
+- Next, click "Instantiate", select the default channel (`mychannel`), and then select the name of the contract we've just built, which will be "food@1.0" in our case. Enter `Init` for the function, and enter an integer "101" as the argument.
+
+<img src="https://i.imgur.com/2fQXQU4.png">
+
+
+*Local Scripts*
+
+As an alternative to VSCode, we can also use the hyperledger fabric scripts to provision a network like so.
 ```
-{
-  "$class": "composer.food.supply.Retailer",
-  "retailerId": "retailerA",
-  "products": []
-}
-```
+cd local
+./startFabric.sh
 
-```
-{
-  "$class": "composer.food.supply.Regulator",
-  "regulatorId": "regulatorA",
-  "location": "SF",
-  "exemptedOrgIds": ["ACME","XYZ CORP"],
-  "exemptedProductIds": ["prodA","prodB"]
-}
-```
-
-```
-{
-  "$class": "composer.food.supply.Importer",
-  "importerId": "importerA"
-}
-```
-
-Now we are ready to add **Access Control**. Do this by first clicking on the `admin` tab to issue **new ids** to the participants and add the ids to the wallet.
-Please follow the instructions as shown in the images below:
-
-![Admin Tab](images/admintab.png)
-
-Click on  `Issue New Id` button to create new Ids.
-![Generate New Id](images/generateNewId.png)
-
-Click on `Add to my Wallet` link to add the newly generated Id to the `Wallet`.
-![Add to Wallet](images/addtowallet.png)
-
-![Ids to Wallet](images/idstowallet.png)
-
-Select the `Supplier id` from `Wallet tab` tab. Now click on the `test tab` to perform `createProductListing` and `transferListing` transactions.
-
-![Select ID](images/selectid.png)
-
-Now click on `Submit Transaction` button and select `createProductListing` transaction from the dropdown, to create a product listing for the list of products. `products` array element contains information about the `productid` and `quantity` separated by `,`.
-
-```
-{
-  "$class": "composer.food.supply.createProductListing",
-  "products": ["prodA,5","prodB,2"],
-  "user": "resource:composer.food.supply.Supplier#supplierA"
-}
-```
-
-After executing the transaction successfully, `productListing` will be created in `ProductListingContract` registry.
-
-![Product Listing](images/productListing.png)
-
-Similarly, submit a `transferListing` transaction to transfer the productListing to `Importer`.
-> `ProductListingContractID`is the id of the ProductListingContract copied from the `ProductListingContract` registry.
-
-```
-{
-  "$class": "composer.food.supply.transferListing",
-  "ownerType": "supplier",
-  "newOwner": "resource:composer.food.supply.Importer#importerA",
-  "productListing": "resource:composer.food.supply.ProductListingContract#<ProductListingContractID>"
-}
+# confirm hyperledger containers are up and running
+docker ps
 ```
 
-`importerA` will be the owner of `ProductListingContract` and the status will be `EXEMPTCHECKREQ`. Also, productListing will be removed from `Supplier` view. Now select the `importer` id from the `Wallet tab` and submit `checkProducts` transaction to perform the exempt check for the products.
+Next, we'll need to install the "Smart Contracts" / "Chaincode", which are a series of functions that have the ability to modify the ledger. This is done by copying the source code into the cli container, and then running `peer chaincode install` and `peer chaincode instantiate` to activate the chaincode.
 
 ```
-{
-  "$class": "composer.food.supply.checkProducts",
-  "regulator": "resource:composer.food.supply.Regulator#regulatorA",
-  "productListing": "resource:composer.food.supply.ProductListingContract#<ProductListingContractID>"
-}
+./installChaincode.sh
 ```
 
-Successful execution of transaction will change the status of productListing to `CHECKCOMPLETED`. Now perform `transferListing` transaction to transfer the products to retailer.
+The install script should result in the following output. Confirm that all status codes have the value of "200" and "OK"
+<img src="https://i.imgur.com/z3vV9A9.png">
+
+After the chaincode has been installed, we can run a sample chaincode invocation to confirm things are configured properly. This can be done by using the `docker exec` command, and providing arguments to target our hyperledger network and invoke the `read_everything` function. This should return a 200 status code and a JSON object with `products`, `retailer`, and `regulator` keys.
 
 ```
-{
-  "$class": "composer.food.supply.transferListing",
-  "ownerType": "importer",
-  "newOwner": "resource:composer.food.supply.Retailer#retailerA",
-  "productListing": "resource:composer.food.supply.ProductListingContract#<ProductListingContractID>"
-}
+docker exec cli peer chaincode invoke -o orderer.example.com:7050 -C mychannel -n food -c '{"Args":["read_everything"]}'
 ```
 
-The transaction will the change the owner of `ProductListingContract` and update the list of products in `Retailer` registry. Select the `Retailer` id from the `Wallet tab` and view the updated registries.
-
-![Product Listing](images/retailerPL.png)
-
-![Retailer Registry](images/retailer.png)
+<!-- *Hosted* -->
 
 
-> You can also use the default `System user` to perform all the actions as we have a rule in `permissions.acl` to permit all access `System user`.
+## 4. Deploy Node.js Application
 
-## 3. Deploy the Business Network Archive on Hyperledger Composer running locally
+In this section, we'll leverage the Node.js Express and Vue frameworks to provide a user friendly way to interact with the Blockchain network.
 
-Please start the local Fabric using the [instructions](https://github.com/IBM/BlockchainNetwork-CompositeJourney#2-starting-hyperledger-fabric).
-Now change directory to the `dist` folder containing `food-supply.bna` file and type:
+### Backend
+The backend uses the Hyperledger Fabric SDK to communicate with a blockchain network, which can be either local or hosted.
+
+*Local*
+Update `/etc/hosts` file with following entries
 ```
-cd dist
-composer runtime install --card PeerAdmin@hlfv1 --businessNetworkName food-supply
-composer network start --card PeerAdmin@hlfv1 --networkAdmin admin --networkAdminEnrollSecret adminpw --archiveFile food-supply.bna --file networkadmin.card
-composer card import --file networkadmin.card
+127.0.0.1 peer0.org1.example.com
+127.0.0.1 ca.example.com
+127.0.0.1 orderer.example.com
 ```
 
-You can verify that the network has been deployed by typing:
+Enter backend directory, install dependencies, and start application with `npm start`. The `DEPLOY_TYPE=local` variable is only necessary when running against a local Hyperledger network. If this variable is not set, the credentials for a hosted blockchain service will need to be provided through the UI form.
 ```
-composer network ping --card admin@food-supply
-```
-
-You should see the the output as follows:
-```
-The connection to the network was successfully tested: events
-	version: 0.18.1
-	participant: org.hyperledger.composer.system.NetworkAdmin#admin
-	identity: org.hyperledger.composer.system.Identity#1f95efceac5421ad34d73130c8f16fbc2d29b7dce0c3425afb3b5f077242b1fc
-
-Command succeeded
-```
-
-To create the REST API we need to launch the `composer-rest-server` and tell it how to connect to our deployed business network.
-Now launch the server by changing directory to the `BlockchainPublicRegulationFabric-Food` folder and type:
-```bash
 cd ..
-composer-rest-server
+cd backend
+npm install
+PORT=30001 DEPLOY_TYPE=local npm start
 ```
 
-Answer the questions posed at startup. These allow the composer-rest-server to connect to Hyperledger Fabric and configure how the REST API is generated.
-* Enter `admin@food-supply` as the card name.
-* Select `never use namespaces` when asked whether to use namespaces in the generated API.
-* Select `No` when asked whether to secure the generated API.
-* Select `Yes` when asked whether to enable event publication.
-* Select `No` when asked whether to enable TLS security.
+<!-- *Hosted* -->
 
-**Test REST API**
+### Frontend
 
-If the composer-rest-server started successfully you should see these two lines are output:
+*Local*
 ```
-Web server listening at: http://localhost:3000
-Browse your REST API at http://localhost:3000/explorer
+cd ..
+cd frontend
+npm install
+npm run serve
 ```
 
-Open a web browser and navigate to http://localhost:3000/explorer
+Visit the UI at `localhost:8080`
 
-You should see the LoopBack API Explorer, allowing you to inspect and test the generated REST API. Follow the instructions to test Business Network Definition as mentioned above in the composer section.
+<!-- *Hosted* -->
+
+## 5. Interact with Blockchain Ledger via UI
+Initially the ledgerState will be blank. We can begin populating it with data by creating participants. To get the latest data from the ledger at any time, click the "Refresh Ledger" button.
+
+Click the "Create User" button.
+
+Select the "Supplier" type from a dropdown, and enter a Country and Org ID.
+
+<img src="https://i.imgur.com/IDkEoyC.png">
+
+This will invoke a "init_user" function with the following data.
+
+```
+{
+	id: "supplier1",
+	type: "supplier",
+	country: "US",
+	orgId: "org1"
+}
+```
+
+Repeat the "Create User" process for a Retailer, Importer, Supplier
+
+Also click the "Create Regulator" button, and enter a unique ID to create a new Regulator.
+
+Select the "Create Product" button, and fill out the form with a unique ID, quantity, and origin country.
+
+<img src="https://i.imgur.com/J4moWmB.png">
+
+
+Now, we can create a product listing. We'll do this by selecting "Create Product Listing", and providing a Listing ID and one or more product IDs. Also we'll need to specify a supplier ID, to specify the original creator of the listing.
+
+After executing the transaction successfully, we should be able to click the "Refresh Ledger" button to see a table of the newly created listing. Since this is a new listing, we'll need to transfer it to a "Importer". This can be done with the "Transfer Product" button, and entering the ID of the listing and the new owner.
+
+<img src="https://i.imgur.com/hKjGfsS.png">
+<!-- Picture -->
+
+Once the transfer is complete, the listing status will change from `INITIALREQUEST`, to `EXEMPTCHECKREQ`, meaning a request will need to be submitted to have a Regulator check the products in the listing, and confirm that none of the products are from an exempted Organization or Country. If any of the Products are exempted, the listing state will be changed to `HAZARDANALYSISCHECKREQ`, and we'll be unable to transfer the listing to a retailer.
+
+<img src="https://i.imgur.com/QHkzRBA.png">
+
+We can simulate an inspection by clicking on the "Check Products" button. This will render a form requiring the listing ID and a regulator ID. If this completes successfully, the product listing will change to `CHECKCOMPLETED`.
+
+<img src="https://i.imgur.com/LDDTUrb.png">
+
+At this point, we can transfer the listing to a retailer using the "Transfer Listing" button.
+<img src="https://i.imgur.com/GZuKN18.png">
+
+This will update the Retailer product fields, and the Owner of the listing as seen below
+
+<img src="https://i.imgur.com/gPKNzMq.png">
 
 
 ## Additional Resources
 * [Hyperledger Fabric Docs](http://hyperledger-fabric.readthedocs.io/en/latest/)
-* [Hyperledger Composer Docs](https://hyperledger.github.io/composer/introduction/introduction.html)
 
 
 ## License

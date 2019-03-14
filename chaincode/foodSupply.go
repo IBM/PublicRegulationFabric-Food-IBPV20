@@ -221,7 +221,7 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface) pb.Response {
 func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 	function, args := stub.GetFunctionAndParameters()
 	fmt.Println(" ")
-	fmt.Println("starting invoke, for - " + function)
+	fmt.Println("invoking function - " + function)
 
 	// Handle different functions
 	if function == "init" {                    //initialize the chaincode state, used as reset

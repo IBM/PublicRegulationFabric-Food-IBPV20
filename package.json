@@ -23,5 +23,8 @@
     "nyc": "latest",
     "mkdirp": "latest",
     "mocha": "latest"
+  },
+  "dependencies": {
+    "express": "^4.16.4"
   }
 }

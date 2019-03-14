@@ -179,18 +179,26 @@ func init_user(stub shim.ChaincodeStubInterface, args []string) pb.Response {
   userType := args[1]
 
   var user User
-	user.Id = id
+	// user.Id = id
   user.Type = userType
 
   // userType := "supplier"
   // switch user.Type := {
 
+  // TODO, remove userType arg
+  // if strings.Contains(id, "supplier") {
+  //
+  // } else if strings.Contains(id, "importer") {
+  //
+  // } else if strings.Contains(id, "retailer") {
+  //
+  // }
   switch userType {
     case "supplier":
       var supplier Supplier
       supplier.User = user
-      supplier.countryId = args[1]
-      supplier.orgId = args[2]
+      supplier.countryId = args[2]
+      supplier.orgId = args[3]
       supplierAsBytes, _ := json.Marshal(supplier)                         //convert to array of bytes
     	err = stub.PutState(id, supplierAsBytes)                    //store owner by its Id
     	if err != nil {

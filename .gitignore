@@ -7,6 +7,9 @@
 # installed platform-specific binaries
 .DS_Store
 
+local/crypto-config/
+backend/hfc-key-store/
+
 .project
 
 # Logs
