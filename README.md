@@ -107,15 +107,28 @@ nvm install v8.9.0
 nvm use 8.9.0
 ```
 
-To run the Securitization UI locally, we'll need to install a few node libraries which are listed in our `package.json` file.
-- [React.js](https://reactjs.org/): Used to simplify the generation of front-end components
-- [MQTT](http://mqtt.org/): Client package to subscribe to Watson IoT Platform and handle incoming messages
+To run the Food Regulation UI locally, we'll need to install a few node libraries which are listed in our `package.json` file.
+- [Vue.js](https://vuejs.org/): Used to simplify the generation of front-end components
+- [Express.js](https://expressjs.org/): Used to provide custom api endpoints
 - [Hyperledger Fabric SDK](https://fabric-sdk-node.github.io/): Enables backend to connect to IBM Blockchain service
+
+### GoLang
+Golang is a programming language we'll use to write "smart contracts". These are essentially functions that can be used to query and update the ledger.
+
+Golang can be installed by visiting the following [link](https://golang.org/dl/), and downloading the package for your operating system.
+
+On OS X, we can install go by downloading and selecting the `.pkg` file, and click through the prompt. If using Linux, we can install go by downloading the `.tar.gz` file and extracting it to `/usr/local`
+
+```
+tar -C /usr/local -xzf go*tar.gz
+```
+
+By default, the "GOPATH" environment variable should be set to
 
 ### VSCode
 Visit the following [link](https://code.visualstudio.com/) to download Visual Studio code for your operating system.
 
-Once VSCode is installed, follow the requirements [here](https://github.com/IBM-Blockchain/blockchain-vscode-extension/blob/master/README.md#requirements) to install the IBM Blockchain Platform extension as well.
+Once VSCode is installed, follow the requirements [here](https://github.com/IBM-Blockchain/blockchain-vscode-extension/blob/master/README.md#requirements) to install the IBM Blockchain Platform extension.
 
 ## Steps
 1. [Clone Git Repository](#1-clone-git-repository)
@@ -124,15 +137,10 @@ Once VSCode is installed, follow the requirements [here](https://github.com/IBM-
 4. [Start Node server]()
 5. [Populate Ledger and Simulate Transactions]
 
-2. [Deploy the Business Network Archive using Composer Playground](#2-deploy-the-business-network-archive-using-composer-playground)
-3. [Deploy the Business Network Archive on Hyperledger Composer running locally](#3-deploy-the-business-network-archive-on-hyperledger-composer-running-locally)
-
-
 ## 1. Clone Git Repository
 ```
 git clone https://github.com/IBM/BlockchainPublicRegulationFabric-Food/
 ```
-
 
 ## 2. Package Smart Contract
 
@@ -140,15 +148,21 @@ We'll interact with VSCode via a graphic interface, so if you're running on Linu
 
 These smart contracts are written in Golang, so the source code for the smart contracts will need to be copied to the src folder in your `GOPATH`. This can be done like so.
 ```
-cp -r chaincode $GOPATH/src/github.com/food
+mkdir $GOPATH/src/github.com/food
+cp chaincode/*go $GOPATH/src/github.com/food/
+```
+
+After this step, there should be several `.go` files in the directory, we can confirm with a `ls` command like so
+```
+Kalonjis-MacBook-Pro:~ kkbankol@us.ibm.com$ ls $GOPATH/src/github.com/food
+foodSupply.go	lib.go		read_ledger.go	write_ledger.go
 ```
 
 - Open VS Code
 
-- In the menu, Click "File" and then "Open" (Or press CMD + O). Navigate to the directory where the project has been cloned, and select the "chaincode" folder.
+- In the menu, Click "File" and then "Open" (Or press CMD + O). Navigate to the directory where your `GOPATH` directory is set (this should default to `~/go`), and select the directory at `$GOPATH/src/github.com/food`
 
-<!-- <img src="https://i.imgur.com/1ENmjK9.png"> -->
-<img src="https://i.imgur.com/HwxisSI.png">
+<img src="https://i.imgur.com/53AnGMV.png">
 
 - Press "F1", and choose the option "IBM Blockchain Platform: Package a Smart Contract Project"
 
@@ -304,6 +318,15 @@ This will update the Retailer product fields, and the Owner of the listing as se
 <img src="https://i.imgur.com/gPKNzMq.png">
 
 
+## Troubleshooting
+
+*Unable to start network through VSCode*
+```
+# change to directory where vscode plugins are installed
+cd ~/.vscode/extensions/
+cd ibmblockchain.ibm-blockchain-platform-0.3.1
+cd basic-network
+```
 ## Additional Resources
 * [Hyperledger Fabric Docs](http://hyperledger-fabric.readthedocs.io/en/latest/)
 
