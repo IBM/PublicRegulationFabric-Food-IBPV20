@@ -179,7 +179,7 @@ func init_user(stub shim.ChaincodeStubInterface, args []string) pb.Response {
   userType := args[1]
 
   var user User
-	// user.Id = id
+	user.Id = id
   user.Type = userType
 
   // userType := "supplier"

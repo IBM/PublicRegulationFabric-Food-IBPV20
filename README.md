@@ -25,27 +25,27 @@ The `updateExemptedList` function is called when a `updateExemptedList` transact
 
 Audience level : Intermediate Developers
 
-If you have an IBM cloud lite account, you can also use the Starter Plan for 30 days to do this pattern.
+If you have an IBM cloud lite account, you can also use the free version of the Blockchain Platform 2.0 for this pattern.
 
 ## Included Components
-* Hyperledger Fabric
-
-## Included technologies
-* Blockchain
-* Kubernetes Container Service
+* Hyperledger Fabric (Blockchain)
+* Kubernetes
 
 ## Application Workflow Diagram
-![Application Workflow](images/archi.png)
+<img src="https://i.imgur.com/ezZfjhO.png">
+
 
 * Install Hyperledger Fabric development tools
 * Configure and start Hyperledger Fabric network
 * Use Fabric SDK to enroll user and invoke blockchain transactions
 
-<!-- * Generate the Business Network Archive file
-* Deploy the Business Network Archive using Composer Playground
-* (Alternative method) Deploy the Business Network Archive on Hyperledger Composer running locally -->
-
-
+Flow:
+1. Deploy Hyperledger network as group of Docker containers (Kubernetes if hosted)
+2. Install smart contracts on Hyperledger containers
+3. Express backend uses Fabric SDK to create and enroll blockchain user
+4. User submits transactions through Vue UI
+5. Vue UI forwards requests to Express backend, which executes requests on the ledger with Fabric SDK
+6. Ledger state is retrieved by SDK and displayed in Vue UI
 
 ## Install Prerequisites:
 
@@ -73,13 +73,15 @@ ibmcloud -v
 ibmcloud login
 ```
 
-Finally, install the container service plugin, which is required to interact with IBM Kubernetes deployments
+Finally, install the container service plugin. This plugin allows us to communicate with the IBM Cloud container service and provision a Kubernetes cluster. Kubernetes is used here to host the application and blockchain network.
+
 ```bash
 ibmcloud plugin install container-service -r Bluemix
 ```
 
 ### Kubernetes CLI
 
+We'll also need to install the kubectl CLI to deploy the application on the provisioned Kubernetes cluster. This requires a configuration file specifying information for each container, such as the base docker image, exposed ports, default command, etc.
 ```bash
 # OS X
 curl https://storage.googleapis.com/kubernetes-release/release/v1.11.7/bin/darwin/amd64/kubectl -P /usr/local/bin/
@@ -113,7 +115,7 @@ To run the Food Regulation UI locally, we'll need to install a few node librarie
 - [Hyperledger Fabric SDK](https://fabric-sdk-node.github.io/): Enables backend to connect to IBM Blockchain service
 
 ### GoLang
-Golang is a programming language we'll use to write "smart contracts". These are essentially functions that can be used to query and update the ledger.
+Golang is a programming language we'll use to write "smart contracts". Smart contracts are essentially functions that can be used to query and update the ledger.
 
 Golang can be installed by visiting the following [link](https://golang.org/dl/), and downloading the package for your operating system.
 
@@ -123,7 +125,10 @@ On OS X, we can install go by downloading and selecting the `.pkg` file, and cli
 tar -C /usr/local -xzf go*tar.gz
 ```
 
-By default, the "GOPATH" environment variable should be set to
+By default, the "GOPATH" environment variable should be set to `$HOME/go`. Set this `GOPATH` variable in your `~/.bash_profile`.
+```
+GOPATH=$HOME/go
+```
 
 ### VSCode
 Visit the following [link](https://code.visualstudio.com/) to download Visual Studio code for your operating system.
@@ -132,10 +137,10 @@ Once VSCode is installed, follow the requirements [here](https://github.com/IBM-
 
 ## Steps
 1. [Clone Git Repository](#1-clone-git-repository)
-2. [Package Smart Contract](#1-deploy-the-blockchain-network)
-3. [Deploy local Blockchain Network](#1-deploy-a-blockchain-network)
-4. [Start Node server]()
-5. [Populate Ledger and Simulate Transactions]
+2. [Package Smart Contract](#2-deploy-the-blockchain-network)
+3. [Deploy local Blockchain Network](#3-deploy-a-blockchain-network)
+4. [Start Node server](#4-deploy-node-application)
+5. [Populate Ledger and Simulate Transactions](#5-populate-ledger-and-simulate-transactions)
 
 ## 1. Clone Git Repository
 ```
@@ -144,7 +149,7 @@ git clone https://github.com/IBM/BlockchainPublicRegulationFabric-Food/
 
 ## 2. Package Smart Contract
 
-We'll interact with VSCode via a graphic interface, so if you're running on Linux or a headless operating system, skip ahead to the section labelled "Local Scripts".
+We'll interact with VSCode via a graphic interface. If you're running on Linux or a headless operating system, or would prefer to manage the network manually via shell scripts, please skip ahead to the section labelled "Local Scripts".
 
 These smart contracts are written in Golang, so the source code for the smart contracts will need to be copied to the src folder in your `GOPATH`. This can be done like so.
 ```
@@ -180,7 +185,9 @@ foodSupply.go	lib.go		read_ledger.go	write_ledger.go
 
 ## 3. Deploy a Blockchain Network
 
-We'll then need to deploy an Hyperledger network. This is done by provisioning each component in a docker container, and running configuration scripts to create and join a peer and channel. There are two methods to do so. The first recommended method is using the "VSCode" application.
+We'll then need to deploy an Hyperledger network. This is done by provisioning each component in a docker container, and running configuration scripts to create and join a peer and channel. There are two methods to do so, and we'll need to only do one or the other.
+
+ The first recommended method is using the "VSCode" application.
 
 *VSCode*
 - Select the menu in the "Local Fabric Ops" section, and click "Start Fabric Runtime". This downloads and starts the Hyperledger docker images.
@@ -188,19 +195,25 @@ We'll then need to deploy an Hyperledger network. This is done by provisioning e
 <img src="https://i.imgur.com/N8r1QLm.png">
 
 - If the network is started successfully, we should see options to "Instantiate" and "Install" the smart contracts.
-<img src="https://i.imgur.com/mOb6JFw.png">
+
+<img src="https://i.imgur.com/MIxQNE0.png">
 
 - First, click "Install", select the default peer (`peer0.org1.example.com`), and then select the name of the contract we've just built, which will be "food@1.0" in our case. If this is successful, our chaincode should show up in the "Installed" section.
 <img src="https://i.imgur.com/vLaW1pi.png">
 
-- Next, click "Instantiate", select the default channel (`mychannel`), and then select the name of the contract we've just built, which will be "food@1.0" in our case. Enter `Init` for the function, and enter an integer "101" as the argument.
+- Next, click "Instantiate", select the default channel (`mychannel`), and then select the name of the contract we've just built, which will be "food@1.0" in our case. Enter `Init` for the function, and enter an integer "101" as the argument. This Init function is called whenever chaincode is being instantiated or upgraded, and initializes the application state. More information can be found on the Init method and other Chaincode inferface methods [here](https://hyperledger-fabric.readthedocs.io/en/release-1.4/chaincode4ade.html#chaincode-api)
 
 <img src="https://i.imgur.com/2fQXQU4.png">
+
+- After the chaincode is installed and instantiated, we should see the following output in the Local Fabric Ops section
+<img src="https://i.imgur.com/mOb6JFw.png">
+
+
 
 
 *Local Scripts*
 
-As an alternative to VSCode, we can also use the hyperledger fabric scripts to provision a network like so.
+As an alternative to VSCode, we can also use the Hyperledger fabric scripts to provision a network like so.
 ```
 cd local
 ./startFabric.sh
@@ -227,7 +240,7 @@ docker exec cli peer chaincode invoke -o orderer.example.com:7050 -C mychannel -
 <!-- *Hosted* -->
 
 
-## 4. Deploy Node.js Application
+## 4. Deploy Node Application
 
 In this section, we'll leverage the Node.js Express and Vue frameworks to provide a user friendly way to interact with the Blockchain network.
 
@@ -266,7 +279,7 @@ Visit the UI at `localhost:8080`
 
 <!-- *Hosted* -->
 
-## 5. Interact with Blockchain Ledger via UI
+## 5. Populate Ledger and Simulate Transactions
 Initially the ledgerState will be blank. We can begin populating it with data by creating participants. To get the latest data from the ledger at any time, click the "Refresh Ledger" button.
 
 Click the "Create User" button.
@@ -324,12 +337,16 @@ This will update the Retailer product fields, and the Owner of the listing as se
 ```
 # change to directory where vscode plugins are installed
 cd ~/.vscode/extensions/
-cd ibmblockchain.ibm-blockchain-platform-0.3.1
+cd ibmblockchain.ibm-blockchain-platform-*
 cd basic-network
+./start.sh
+
 ```
 ## Additional Resources
 * [Hyperledger Fabric Docs](http://hyperledger-fabric.readthedocs.io/en/latest/)
-
+* [Vue.js](https://vuejs.org/)
 
 ## License
-[Apache 2.0](LICENSE)
+This code pattern is licensed under the Apache Software License, Version 2. Separate third-party code objects invoked within this code pattern are licensed by their respective providers pursuant to their own separate licenses. Contributions are subject to the [Developer Certificate of Origin, Version 1.1 (DCO)](https://developercertificate.org/) and the [Apache Software License, Version 2](https://www.apache.org/licenses/LICENSE-2.0.txt).
+
+[Apache Software License (ASL) FAQ](https://www.apache.org/foundation/license-faq.html#WhatDoesItMEAN)
