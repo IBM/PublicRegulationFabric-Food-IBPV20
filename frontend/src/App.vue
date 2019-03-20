@@ -1,35 +1,17 @@
 <template>
   <div id="app">
 
-    <!-- <demo-login-modal/> -->
-
-    <!-- <img alt="Vue logo" src="./assets/logo.png"> -->
-    <!-- <HelloWorld msg="Welcome to Your Vue.js App"/> -->
-
-    <!-- <button id="show-modal" @click="showModal = true">Show Modal</button> -->
-    <!-- use the modal component, pass in the prop -->
-    <!-- <modal v-if="showModal" @close="showModal = false"> -->
-      <!-- <h3 slot="header">custom header</h3> -->
-    <!-- </modal> -->
-    <!-- <input v-model="message" placeholder="edit me">
-    <p>Message is: {{ message }}</p> -->
-
-    <!-- <vue-form v-model="form" > -->
-
-    <!-- <vue-form v-model="form" >        -->
-    <div>
+    <div id="createButtons">
       <vue-button type="default" v-on:click="showInvokeModal({'function': 'init_product_listing', 'fields': ['Product Listing Id', 'Supplier ID', 'Product ID'], 'title': 'Create Product Listing'})">Create Product Listing</vue-button>
       <vue-button type="default" v-on:click="showInvokeModal({'function': 'init_product', 'fields': ['Product Id', 'Quantity', 'CountryId'], 'title': 'Create Product'})">Create Product</vue-button>
       <vue-button type="default" v-on:click="showInvokeModal({'function': 'init_user', 'fields': ['ID'], 'title': 'Create User'})">Create User</vue-button>
       <vue-button type="default" v-on:click="showInvokeModal({'function': 'init_regulator', 'fields': ['ID'], 'title': 'Create Regulator'})">Create Regulator</vue-button>
     </div>
     </br>
-    <div>
 
+    <div id="invokeQueryButtons">
       <vue-button type="default" v-on:click="showInvokeModal({'function': 'transfer_product_listing', 'fields': ['Product Listing Id', 'New Owner ID'], 'title': 'Transfer Product Listing'})">Transfer Product Listing</vue-button>
       <vue-button type="default" v-on:click="showInvokeModal({'function': 'check_products', 'fields': ['Product Listing ID', 'Regulator ID'], 'title': 'Check Products'})">Check Products</vue-button>
-
-
       <vue-button type="default" v-on:click="getLedger">Refresh Ledger</vue-button>
     </div>
 
@@ -65,122 +47,83 @@
             </vue-form-item>
           </template>
           <template v-if="func == 'init_user'">
-            <vue-form-item >
-              <v-select @change="addFields" style="width:400px;margin-left:100px" id="user_type" v-model="user_type" placeholder="User Type" :options="['retailer','importer', 'supplier']"></v-select>
-            </vue-form-item>
-          </template>
+                      <vue-form-item >
+                        <v-select @change="addFields" style="width:400px;margin-left:100px" id="user_type" v-model="user_type" placeholder="User Type" :options="['retailer','importer', 'supplier']"></v-select>
+                      </vue-form-item>
+                    </template>
           <template v-for="(field, idx) in user_fields">
-            <vue-form-item>
-              <vue-input
-                :placeholder=field
-                v-model=user_input[idx]>
-              </vue-input>
-            </vue-form-item>
-          </template>
+                      <vue-form-item>
+                        <vue-input
+                          :placeholder=field
+                          v-model=user_input[idx]>
+                        </vue-input>
+                      </vue-form-item>
+                    </template>
           <vue-form-item style="margin-left:100px">
             <vue-button type="default" v-on:click="hideModal">Cancel</vue-button>
-            <vue-button type="success" v-on:click="invoke" >Submit</vue-button>
+            <vue-button type="success" v-on:click="invoke">Submit</vue-button>
           </vue-form-item>
-        </vue-form>
+          </vue-form>
       </modal>
 
+      <div>
 
-      <!-- <modal name="invoke-modal">
-        <vue-form
-          id="chaincode-form"
-          :model="form"
-          style="width: 75%; position: fixed; left: 50%; margin-left: -37.5%;">
-          <h2 style="float:center"> Invoke Chaincode </h2>
-          <vue-form-item label="Function">
-            <vue-input
-              placeholder="Function"
-              v-model="form.function"
-              style="width: 100%">
-            </vue-input>
-          </vue-form-item>
+        <template v-if="ledgerState.products">
+                <data-table :data=ledgerState.products :style="{width: '400px', height: '200px', overflow: 'auto'}">
+                  <template slot="caption">Products</template>
+        </data-table>
+        </template>
 
-          <vue-form-item label="Arguments">
-            <vue-input
-              placeholder="Arguments"
-              v-model="form.args"
-              style="width: 100%">
-            </vue-input>
-          </vue-form-item>
-          <vue-form-item>
-            <vue-button type="default" v-on:click="isHidden = true">Cancel</vue-button>
-            <vue-button type="success" v-on:click="invoke" >Submit</vue-button>
-          </vue-form-item>
-        </vue-form>
-      </modal> -->
+        <template v-if="ledgerState.retailers">
+                <data-table :data="ledgerState.retailers.map( s =>  ({ Id: s.Id, Products: s.products }) )" :style="{width: '300px', height: '200px', overflow: 'auto'}">
+                    <template slot="caption">Retailers</template>
+                </data-table>
+        </template>
 
-
-      <!-- <template v-if="Object.keys(ledgerState).length"> -->
-
-
-        <div>
-
-          <template v-if="ledgerState.products">
-          <data-table :data=ledgerState.products height="auto" width="auto">
-            <template slot="caption">Products</template>
-          </data-table>
-          </template>
-
-          <template v-if="ledgerState.products">
-          <data-table :data="ledgerState.retailers.map( s =>  ({ Id: s.Id, Products: s.products }) )">
-              <template slot="caption">Retailers</template>
-          </data-table>
-          </template>
-
-          <template v-if="ledgerState.suppliers">
-          <data-table :data="ledgerState.suppliers.map( s =>  ({ Id: s.Id, CountryId: s.countryId, OrgId: s.orgId }) )" >
-          <!-- <data-table :data="ledgerState.suppliers" > -->
-            <template slot="caption">Suppliers</template>
-          </data-table>
-          </template>
-        </div>
-          <!-- </template> -->
+        <template v-if="ledgerState.suppliers">
+                <data-table :data="ledgerState.suppliers.map( s =>  ({ Id: s.Id, CountryId: s.countryId, OrgId: s.orgId }) )" :style="{width: '400px', height: '200px', overflow: 'auto'}">>
+                  <template slot="caption">Suppliers</template>
+                </data-table>
+        </template>
+      </div>
+      <!-- </template> -->
       <div style="clear: both;margin:auto;margin-top:50px">
 
         <template v-if="ledgerState.ProductListingContracts">
-        <data-table style="margin:auto" :data=ledgerState.ProductListingContracts>
-          <template slot="caption">Product Listing Contracts</template>
+              <data-table style="margin:auto" :data=ledgerState.ProductListingContracts :style="{width: '400px', height: '200px', overflow: 'auto'}">
+                <template slot="caption">Product Listing Contracts</template>
         </data-table>
         </template>
       </div>
       <div style="margin:auto">
         <template v-if="ledgerState.regulators">
-
-        <data-table  :data=ledgerState.regulators>
-          <template slot="caption">Regulators</template>
+              <data-table  :data=ledgerState.regulators :style="{width: '400px', height: '200px', overflow: 'auto'}">
+                <template slot="caption">Regulators</template>
         </data-table>
         </template>
         <template v-if="ledgerState.importers">
-        <data-table  :data="ledgerState.importers.map( s =>  ({ Id: s.Id }) )">
-        <!-- <data-table  :data="ledgerState.importers"> -->
-          <template slot="caption">Importers</template>
-        </data-table>
-        </template>
-
-        <template v-if="ledgerState.retailers">
-        <data-table  :data="ledgerState.retailers.map( s =>  ({ Id: s.Id, Products: s.products }) )">
-        <!-- <data-table  :data="ledgerState.importers"> -->
-          <template slot="caption">Retailers</template>
+              <data-table  :data="ledgerState.importers.map( s =>  ({ Id: s.Id }) )" :style="{width: '400px', height: '400px', overflow: 'auto'}">
+              <!-- <data-table  :data="ledgerState.importers"> -->
+                <template slot="caption">Importers</template>
         </data-table>
         </template>
       </div>
       <!-- </template> -->
-    </div>
-    <!-- </v-card> -->
-    <!-- <p>Ledger State</p> -->
-    <div class="col-xs-12">
-      <div class="well">
-        <tree-view :data="ledgerState" :options="{maxDepth: 1, rootObjectKey: 'ledgerState'}"></tree-view>
       </div>
-    </div>
-    </br></br></br></br>
+      <!-- </v-card> -->
+      <!-- <p>Ledger State</p> -->
+      <div class="col-xs-12">
+        <div class="well">
+          <tree-view :data="ledgerState" :options="{maxDepth: 1, rootObjectKey: 'ledgerState'}"></tree-view>
+        </div>
+      </div>
+      </br>
+      </br>
+      </br>
+      </br>
 
-    <!--  TODO, this is being hidden by datatables since it's fixed -->
-    <!-- <div v-if="!isHidden" style="z-index:9000">
+<!--  TODO, this is being hidden by datatables since it's fixed -->
+<!-- <div v-if="!isHidden" style="z-index:9000">
       <vue-form
         id="chaincode-form"
         :model="form"
@@ -207,14 +150,14 @@
         </vue-form-item>
       </vue-form>
     </div> -->
-      <!-- <vue-form-item> item 1 </vue-form-item>
+<!-- <vue-form-item> item 1 </vue-form-item>
       <vue-form-item> item 2 </vue-form-item> -->
-      <!-- <vue-input placeholder="Please input"></vue-input>
+<!-- <vue-input placeholder="Please input"></vue-input>
       <vue-input placeholder="Please input"></vue-input> -->
 
 
 
-  </div>
+</div>
 
 
 </template>
@@ -309,7 +252,7 @@
             'Content-Type': 'application/json'
           }
         }
-        fetch("http://localhost:30001/api/chaincode", options).then((response) => {
+        fetch("http://localhost:30001/api/chaincode", options).then(() => {
           console.log("api call complete")
           // this.$data.isHidden = true
           this.$modal.hide('invoke-modal');
@@ -370,7 +313,9 @@
         this.$data.title = config.title
         this.$data.user_fields = []
         this.$data.user_type = ''
-        this.$modal.show('invoke-modal', { "fields": config.fields });
+        this.$modal.show('invoke-modal', {
+          "fields": config.fields
+        });
       },
       hideModal() {
         this.$modal.hide('invoke-modal');
@@ -378,13 +323,13 @@
         this.$data.user_fields = []
         this.$data.user_type = ''
       },
-      getFormValues () {
+      getFormValues() {
         console.log("getting form vals")
         console.log(this.$data.input)
         // this.output = this.$refs.my_input.value
         // console.log(this.$refs.my_input.value)
       },
-      addFields () {
+      addFields() {
         this.$data.input.push(this.$data.user_type)
         if (this.user_type == "supplier") {
           this.$data.user_fields.push('Country Id')
