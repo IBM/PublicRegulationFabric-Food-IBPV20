@@ -144,7 +144,7 @@ Once VSCode is installed, follow the requirements [here](https://github.com/IBM-
 
 ## 1. Clone Git Repository
 ```
-git clone https://github.com/IBM/BlockchainPublicRegulationFabric-Food/
+git clone https://github.com/IBM/PublicRegulationFabric-Food-IBPV20/
 ```
 
 ## 2. Package Smart Contract
