@@ -32,8 +32,7 @@ If you have an IBM cloud lite account, you can also use the free version of the 
 * Kubernetes
 
 ## Application Workflow Diagram
-<img src="https://i.imgur.com/ezZfjhO.png">
-
+![Arch](images/archi.png)
 
 * Install Hyperledger Fabric development tools
 * Configure and start Hyperledger Fabric network
