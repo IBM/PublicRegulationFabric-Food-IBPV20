@@ -200,11 +200,6 @@ version to work.
 
 ### Install and Instantiate Contract
 **🚨🚨Note the gifs show a different smart contract name being instantiated, but the process is the same🚨🚨**
-![importContract](https://user-images.githubusercontent.com/10428517/76371236-e0ba3d00-62f6-11ea-82a1-bfa4798985b9.gif)
-- Next, we have to import our contract before we can install it. Click on 
-**View -> Open Command Pallette -> Import Smart Contract**. Next, click 
-on the `food@0.0.1.cds` file that is at the root of our directory.
-This will be where you cloned this repo.
 
 ![installAndInstantiate](https://user-images.githubusercontent.com/10428517/76371514-bae16800-62f7-11ea-9038-039b0fac6967.gif)
 - Now, let's click on *+ Install* and choose the peer that is available. Then the extension will ask you which package to 
