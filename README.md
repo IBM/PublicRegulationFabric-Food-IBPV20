@@ -184,31 +184,32 @@ foodSupply.go	lib.go		read_ledger.go	write_ledger.go
 
 ## 3. Deploy a Blockchain Network
 
-We'll then need to deploy an Hyperledger network. This is done by provisioning each component in a docker container, and running configuration scripts to create and join a peer and channel. There are two methods to do so, and we'll need to only do one or the other.
+![startRuntime](https://user-images.githubusercontent.com/10428517/76370968-dea3ae80-62f5-11ea-8793-d04610e8bf30.gif)
 
- The first recommended method is using the "VSCode" application.
+- If you get errors like the gRPC error, you may need to download an earlier version of VSCode (1.39) [here](https://code.visualstudio.com/updates/v1_39). Note that if you are using Mac, make sure the VSCode in your /Applications
+folder shows version 1.39 when you click on show details. You may need to 
+move newer version into the trash, and then empty the trash for the older 
+version to work.
 
-*VSCode*
-- Select the menu in the "Local Fabric Ops" section, and click "Start Fabric Runtime". This downloads and starts the Hyperledger docker images.
+- First, we need to go to our IBM Blockchain Extension. Click on the IBM Blockchain icon
+  in the left side of VSCode (It looks like a square). 
+- Next, start your local fabric by clicking on 
+  *1 Org Local Fabric* in the **FABRIC ENVIRONMENTS** pane.
+  
+- Once the runtime is finished starting (this might take a couple of minutes), under *Local Fabric* you should see *Smart Contracts* and a section for both *installed* and *instantiated*.
 
-<img src="https://i.imgur.com/N8r1QLm.png">
+### Install and Instantiate Contract
+**🚨🚨Note the gifs show a different smart contract name being instantiated, but the process is the same🚨🚨**
 
-- If the network is started successfully, we should see options to "Instantiate" and "Install" the smart contracts.
-
-<img src="https://i.imgur.com/MIxQNE0.png">
-
-- First, click "Install", select the default peer (`peer0.org1.example.com`), and then select the name of the contract we've just built, which will be "food@1.0" in our case. If this is successful, our chaincode should show up in the "Installed" section.
-<img src="https://i.imgur.com/vLaW1pi.png">
-
-- Next, click "Instantiate", select the default channel (`mychannel`), and then select the name of the contract we've just built, which will be "food@1.0" in our case. Enter `Init` for the function, and enter an integer "101" as the argument. This Init function is called whenever chaincode is being instantiated or upgraded, and initializes the application state. More information can be found on the Init method and other Chaincode inferface methods [here](https://hyperledger-fabric.readthedocs.io/en/release-1.4/chaincode4ade.html#chaincode-api)
-
-<img src="https://i.imgur.com/2fQXQU4.png">
-
-- After the chaincode is installed and instantiated, we should see the following output in the Local Fabric Ops section
-<img src="https://i.imgur.com/mOb6JFw.png">
-
-
-
+![installAndInstantiate](https://user-images.githubusercontent.com/10428517/76371514-bae16800-62f7-11ea-9038-039b0fac6967.gif)
+- Now, let's click on *+ Install* and choose the peer that is available. Then the extension will ask you which package to 
+ install. Choose *food@0.0.1.cds*.
+- Lastly, we need to instantiate the contract to be able to submit transactions 
+on our network. Click on *+ Instantiate* and then choose *food@0.0.1.cds*.
+- When promted for a function, a private data collection, or and endorsement 
+policy, hit `enter` on your keyboard, which will take all of the defaults.
+- This will instantiate the smart contract. This may take some time. You should see the contract under the *instantiated* tab on the left-hand side, once it 
+is finished instantiating.
 
 *Local Scripts*
 
